@@ -4,9 +4,19 @@ Can a reinforcement learning execution policy improve dynamic cryptocurrency pai
 
 This project is an independent research implementation inspired by the 2026 study by Damian Lebiedź and Robert Ślepaczuk. It will reproduce the core research logic, test simpler baselines, and examine where a learning policy adds value rather than assuming that complexity is beneficial.
 
-## Current milestone
+## Locked heuristic baseline
 
-The project now contains the first real data pipeline and pair screening baseline. It downloads public hourly spot candles for BTC, ETH, SOL, ADA, DOGE, and LTC from Coinbase Exchange. The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.
+The project now contains 23,175 aligned hourly observations for BTC, ETH, SOL, ADA, DOGE, and LTC from Coinbase Exchange. The chronological design uses 2024 for training, 2025 for validation, and 2026 for untouched testing.
+
+Training selects BTC with DOGE, SOL with DOGE, and BTC with SOL. Validation selects a 336 hour lookback, a 1.5 standard deviation entry threshold, and a 0.5 standard deviation exit threshold. The test applies a one hour execution delay and ten basis points of turnover cost.
+
+The locked heuristic performs poorly on the untouched test. Its annualized return is negative 23.6 percent, volatility is 13.3 percent, Sharpe estimate is negative 1.77, maximum drawdown is 18.0 percent, and ending wealth is 0.85. This is an informative failure rather than a profitability claim. The reinforcement learning overlay must improve upon this fixed baseline without weakening the risk controls or using test information.
+
+![Locked heuristic baseline](docs/assets/heuristic_baseline.png)
+
+## Initial pair screen
+
+The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.
 
 ![Initial cryptocurrency pair screen](docs/assets/initial_pair_screen.png)
 
