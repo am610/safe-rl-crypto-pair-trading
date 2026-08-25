@@ -1,5 +1,7 @@
 # Safe Deep Reinforcement Learning for Cryptocurrency Pair Trading
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/am610/safe-rl-crypto-pair-trading/blob/main/notebooks/01_safe_rl_crypto_pair_trading.ipynb)
+
 Can a reinforcement learning execution policy improve dynamic cryptocurrency pair trading after costs, selection controls, and deterministic risk limits?
 
 This project is an independent research implementation inspired by the 2026 study by Damian Lebiedź and Robert Ślepaczuk. It will reproduce the core research logic, test simpler baselines, and examine where a learning policy adds value rather than assuming that complexity is beneficial.
@@ -39,6 +41,16 @@ On the exploratory 2026 period, the permission gate improves the heuristic Sharp
 The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.
 
 ![Initial cryptocurrency pair screen](docs/assets/initial_pair_screen.png)
+
+## Animated pair evolution
+
+The animation uses the real Coinbase BTC and DOGE history. It follows normalized prices, the rolling spread z score, fixed entry thresholds, and the hours when the deterministic heuristic is active.
+
+![BTC and DOGE pair evolution](docs/assets/btc_doge_pair_evolution.gif)
+
+## Recruiter notebook
+
+[Open the executed research notebook](notebooks/01_safe_rl_crypto_pair_trading.ipynb) or launch it with the Colab button above. The notebook combines data provenance, experimental design, pair selection, the locked heuristic, PPO failure analysis, the safer permission gate, risk controls, and limitations.
 
 ## Planned research architecture
 
