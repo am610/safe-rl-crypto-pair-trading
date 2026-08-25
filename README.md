@@ -26,6 +26,14 @@ A controlled follow up compares three PPO candidates using 2025 validation perfo
 
 This evidence rejects the present action formulation. The next version will treat abstention as the default decision and require the policy to earn permission to activate a deterministic trade. Because the 2026 period was already viewed after the first PPO run, all current 2026 policy comparisons are explicitly exploratory.
 
+## Permission gate result
+
+The redesigned policy can only authorize or reject deterministic pair signals. It cannot choose trade direction, increase leverage, or override the risk shield. Three candidates are compared using 2025 validation results. The selected candidate achieves a validation Sharpe estimate of 0.77 and reduces validation activity to 53.9 percent.
+
+On the exploratory 2026 period, the permission gate improves the heuristic Sharpe from negative 1.77 to negative 1.70 and reduces maximum drawdown from 18.0 percent to 10.9 percent. Ending wealth improves from 0.85 to 0.92. The improvement is economically relevant but does not establish profitability. It supports the narrower conclusion that explicit abstention and deterministic shielding are safer than unrestricted signal scaling in this experiment.
+
+![Permission gate result](docs/assets/permission_gate.png)
+
 ## Initial pair screen
 
 The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.

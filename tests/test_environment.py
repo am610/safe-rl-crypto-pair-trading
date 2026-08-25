@@ -1,6 +1,6 @@
 import numpy as np
 
-from crypto_pair_rl.environment import PairExecutionEnv, deterministic_shield
+from crypto_pair_rl.environment import PairExecutionEnv, PermissionGateEnv, deterministic_shield
 
 
 def test_shield_blocks_divergence_and_limits_concentration():
@@ -38,3 +38,17 @@ def test_activity_penalty_reduces_reward_without_changing_return():
     _, selective_reward, _, _, selective_info = selective.step(np.array([2]))
     assert selective_reward < plain_reward
     assert selective_info["net_return"] == plain_info["net_return"]
+
+
+def test_permission_gate_defaults_to_no_positions():
+    environment = PermissionGateEnv(
+        np.zeros((4, 2)),
+        np.ones((4, 1)) * 0.001,
+        np.ones((4, 1)),
+        np.ones((4, 1)) * 2.0,
+    )
+    environment.reset()
+    _, reward, _, _, info = environment.step(np.array([0]))
+    assert reward == 0
+    assert info["active_pairs"] == 0
+    assert info["turnover"] == 0

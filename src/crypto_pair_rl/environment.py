@@ -102,3 +102,38 @@ class PairExecutionEnv(gym.Env):
             "shield_changed_action": bool(np.any(positions != requested)),
         }
         return observation, float(reward), terminated, False, info
+
+
+class PermissionGateEnv(PairExecutionEnv):
+    """Authorize or reject deterministic signals under the same risk shield."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.action_space = spaces.MultiBinary(self.pair_count)
+
+    def step(self, action: np.ndarray):
+        requested = np.asarray(action, dtype=np.float32) * self.heuristic_directions[self.location]
+        positions = deterministic_shield(
+            requested,
+            self.zscores[self.location],
+            maximum_active_pairs=self.maximum_active_pairs,
+        )
+        turnover = np.abs(positions - self.current_positions).sum() / self.pair_count
+        gross_return = float(np.mean(positions * self.next_returns[self.location]))
+        net_return = gross_return - self.cost_rate * turnover
+        self.wealth *= max(1.0 + net_return, 1e-6)
+        self.peak = max(self.peak, self.wealth)
+        drawdown = 1.0 - self.wealth / self.peak
+        active_fraction = np.count_nonzero(positions) / self.pair_count
+        reward = net_return * 10_000 - self.activity_penalty_bps * active_fraction - 0.05 * drawdown
+        self.current_positions = positions
+        self.location += 1
+        terminated = self.location >= len(self.observations) - 1
+        observation = np.zeros(self.observation_space.shape, dtype=np.float32) if terminated else self._observation()
+        info = {
+            "net_return": net_return,
+            "turnover": float(turnover),
+            "active_pairs": int(np.count_nonzero(positions)),
+            "shield_changed_action": bool(np.any(positions != requested)),
+        }
+        return observation, float(reward), terminated, False, info
