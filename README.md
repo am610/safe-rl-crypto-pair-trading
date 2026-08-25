@@ -14,6 +14,14 @@ The locked heuristic performs poorly on the untouched test. Its annualized retur
 
 ![Locked heuristic baseline](docs/assets/heuristic_baseline.png)
 
+## First reinforcement learning diagnostic
+
+The first shielded PPO execution policy uses 100,000 training steps and a fixed random seed. Its actions scale the heuristic pair signals, while a deterministic shield blocks extreme spread divergence and limits simultaneous pair concentration.
+
+This first policy fails. It remains active during 83.0 percent of test hours and produces a negative 7.07 Sharpe estimate with a 29.6 percent maximum drawdown. The shield changes 540 requested actions but cannot compensate for an agent that participates too frequently. The result identifies reward design and abstention behavior as the next research problem.
+
+![First shielded PPO diagnostic](docs/assets/ppo_overlay.png)
+
 ## Initial pair screen
 
 The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.
