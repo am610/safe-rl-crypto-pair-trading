@@ -37,6 +37,7 @@ class PairExecutionEnv(gym.Env):
         zscores: np.ndarray,
         cost_bps: float = 10.0,
         maximum_active_pairs: int = 2,
+        activity_penalty_bps: float = 0.0,
     ) -> None:
         super().__init__()
         self.observations = np.asarray(observations, dtype=np.float32)
@@ -52,6 +53,7 @@ class PairExecutionEnv(gym.Env):
             raise ValueError("Environment arrays must have equal length")
         self.pair_count = self.next_returns.shape[1]
         self.cost_rate = cost_bps / 10_000
+        self.activity_penalty_bps = activity_penalty_bps
         self.maximum_active_pairs = maximum_active_pairs
         self.action_space = spaces.MultiDiscrete([3] * self.pair_count)
         feature_count = self.observations.shape[1] + self.pair_count
@@ -87,7 +89,8 @@ class PairExecutionEnv(gym.Env):
         self.wealth *= max(1.0 + net_return, 1e-6)
         self.peak = max(self.peak, self.wealth)
         drawdown = 1.0 - self.wealth / self.peak
-        reward = net_return * 10_000 - 0.05 * drawdown
+        active_fraction = np.count_nonzero(positions) / self.pair_count
+        reward = net_return * 10_000 - self.activity_penalty_bps * active_fraction - 0.05 * drawdown
         self.current_positions = positions
         self.location += 1
         terminated = self.location >= len(self.observations) - 1

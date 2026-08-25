@@ -57,7 +57,7 @@ def build_arrays(closes: pd.DataFrame, selected: pd.DataFrame, lookback: int = 3
     return joined.index, features, pair_returns, directions, zscores
 
 
-def make_environment(features, returns, directions, zscores, index):
+def make_environment(features, returns, directions, zscores, index, activity_penalty_bps=0.0):
     return PairExecutionEnv(
         features.loc[index].to_numpy(),
         returns.loc[index].to_numpy(),
@@ -65,6 +65,7 @@ def make_environment(features, returns, directions, zscores, index):
         zscores.loc[index].to_numpy(),
         cost_bps=10,
         maximum_active_pairs=2,
+        activity_penalty_bps=activity_penalty_bps,
     )
 
 
@@ -89,32 +90,69 @@ def main() -> None:
     train_index = index[index <= TRAIN_END]
     validation_index = index[(index > TRAIN_END) & (index <= VALIDATION_END)]
     test_index = index[index > VALIDATION_END]
-    train_environment = make_environment(features, returns, directions, zscores, train_index)
-    check_env(train_environment)
-    model = PPO(
-        "MlpPolicy",
-        train_environment,
-        seed=17,
-        learning_rate=3e-4,
-        n_steps=1024,
-        batch_size=256,
-        gamma=0.995,
-        ent_coef=0.01,
-        policy_kwargs={"net_arch": [128, 128]},
-        verbose=0,
-    )
-    model.learn(total_timesteps=100_000, progress_bar=False)
-
-    validation = evaluate(model, make_environment(features, returns, directions, zscores, validation_index))
+    candidate_configs = [
+        {"seed": 17, "activity_penalty_bps": 0.25},
+        {"seed": 29, "activity_penalty_bps": 0.50},
+        {"seed": 41, "activity_penalty_bps": 1.00},
+    ]
+    candidates = []
+    models = []
+    for config in candidate_configs:
+        train_environment = make_environment(
+            features,
+            returns,
+            directions,
+            zscores,
+            train_index,
+            config["activity_penalty_bps"],
+        )
+        check_env(train_environment)
+        candidate = PPO(
+            "MlpPolicy",
+            train_environment,
+            seed=config["seed"],
+            learning_rate=2e-4,
+            n_steps=1024,
+            batch_size=256,
+            gamma=0.995,
+            ent_coef=0.0,
+            policy_kwargs={"net_arch": [128, 128]},
+            verbose=0,
+        )
+        candidate.learn(total_timesteps=80_000, progress_bar=False)
+        validation = evaluate(
+            candidate,
+            make_environment(features, returns, directions, zscores, validation_index),
+        )
+        metrics = annualized_metrics(validation["net_return"])
+        candidates.append(
+            {
+                **config,
+                "validation_sharpe": metrics["sharpe"],
+                "validation_return": metrics["annual_return"],
+                "validation_drawdown": metrics["maximum_drawdown"],
+                "validation_activity": float((validation["active_pairs"] > 0).mean()),
+            }
+        )
+        models.append(candidate)
+    candidate_table = pd.DataFrame(candidates)
+    scores = candidate_table["validation_sharpe"].fillna(-1e9)
+    selected_location = int(scores.to_numpy().argmax())
+    model = models[selected_location]
+    selected_config = candidate_configs[selected_location]
     test = evaluate(model, make_environment(features, returns, directions, zscores, test_index))
     test_metrics = annualized_metrics(test["net_return"])
     test_metrics.update(
         active_pair_hours=int((test["active_pairs"] > 0).sum()),
         activity_fraction=float((test["active_pairs"] > 0).mean()),
         shield_interventions=int(test["shield_changed_action"].sum()),
-        validation_sharpe=annualized_metrics(validation["net_return"])["sharpe"],
-        training_steps=100_000,
-        seed=17,
+        validation_sharpe=float(candidate_table.iloc[selected_location]["validation_sharpe"]),
+        validation_activity=float(candidate_table.iloc[selected_location]["validation_activity"]),
+        training_steps=80_000,
+        seed=int(selected_config["seed"]),
+        activity_penalty_bps=float(selected_config["activity_penalty_bps"]),
+        candidate_count=len(candidate_configs),
+        evaluation_status="exploratory because the 2026 period was viewed after the first policy",
     )
 
     outputs = ROOT / "outputs"
@@ -123,6 +161,7 @@ def main() -> None:
     for directory in [outputs, assets, models]:
         directory.mkdir(parents=True, exist_ok=True)
     model.save(models / "ppo_execution_overlay")
+    candidate_table.to_csv(outputs / "ppo_validation_candidates.csv", index=False)
     test.to_csv(outputs / "ppo_test_path.csv", index=False)
     with open(outputs / "ppo_results.json", "w", encoding="utf-8") as handle:
         json.dump(test_metrics, handle, indent=2)

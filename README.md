@@ -22,6 +22,10 @@ This first policy fails. It remains active during 83.0 percent of test hours and
 
 ![First shielded PPO diagnostic](docs/assets/ppo_overlay.png)
 
+A controlled follow up compares three PPO candidates using 2025 validation performance only. Activity penalties range from 0.25 to 1.00 basis points and each candidate uses a different fixed seed. Every validation Sharpe remains negative. The selected candidate improves the exploratory 2026 Sharpe from negative 7.07 to negative 4.69 and reduces maximum drawdown from 29.6 percent to 18.2 percent, but activity remains excessive at 83.2 percent.
+
+This evidence rejects the present action formulation. The next version will treat abstention as the default decision and require the policy to earn permission to activate a deterministic trade. Because the 2026 period was already viewed after the first PPO run, all current 2026 policy comparisons are explicitly exploratory.
+
 ## Initial pair screen
 
 The first experiment estimates hedge relations, spread stationarity, mean reversion speed, and pair rankings.
