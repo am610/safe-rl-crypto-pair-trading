@@ -48,7 +48,7 @@ The animation uses the real Coinbase BTC and DOGE history. It follows normalized
 
 ![BTC and DOGE pair evolution](docs/assets/btc_doge_pair_evolution.gif)
 
-## Recruiter notebook
+## Research notebook
 
 [Open the executed research notebook](notebooks/01_safe_rl_crypto_pair_trading.ipynb) or launch it with the Colab button above. The notebook combines data provenance, experimental design, pair selection, the locked heuristic, PPO failure analysis, the safer permission gate, risk controls, and limitations.
 
@@ -63,7 +63,7 @@ The animation uses the real Coinbase BTC and DOGE history. It follows normalized
 7. Fees, turnover, funding proxy, and execution stress tests
 8. Stationary block bootstrap comparison
 9. Interactive allocation and trade replay
-10. Executed recruiter notebook and Google Colab launch
+10. Executed research notebook and Google Colab launch
 
 ## Data choice
 

@@ -1,4 +1,4 @@
-"""Create a compact recruiter animation from the real BTC and DOGE history."""
+"""Create a compact research animation from the real BTC and DOGE history."""
 
 from __future__ import annotations
 

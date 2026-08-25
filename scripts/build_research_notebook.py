@@ -1,4 +1,4 @@
-"""Build the compact executed notebook used for GitHub and Colab."""
+"""Build the compact executed research notebook used for GitHub and Colab."""
 
 from __future__ import annotations
 
